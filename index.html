@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Squares Game</title>
   <style>
-    /* Basic styling for the game */
+    /* --- CSS Styles --- */
     body {
       display: flex;
       justify-content: center;
@@ -58,8 +58,7 @@
       border: 1px solid #ccc;
       color: #333;
     }
-    .shufButton,
-    .hideButton {
+    .shufButton, .hideButton {
       background-color: #007bff;
       color: #fff;
       border: none;
@@ -73,13 +72,8 @@
       text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
       margin-top: 180px;
     }
-    .shufButton {
-      margin-right: 30px;
-    }
-    .hideButton {
-      margin-left: 30px;
-    }
-    /* Colors for numbered squares */
+    .shufButton { margin-right: 30px; }
+    .hideButton { margin-left: 30px; }
     #square1 { background-color: #FF5733; }
     #square2 { background-color: #33FF57; }
     #square3 { background-color: #3357FF; }
@@ -87,7 +81,7 @@
     #square5 { background-color: #33FFF5; }
     #square6 { background-color: #FFAA33; }
   </style>
-  <!-- Include the Socket.io client library -->
+  <!-- Include Socket.IO client library -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
@@ -97,7 +91,7 @@
         <button class="shufButton" id="shuffleButton"><span>Shuffle</span></button>
       </div>
       <div class="square-container">
-        <!-- Row for empty squares -->
+        <!-- Empty squares row -->
         <div class="row empty-row">
           <div id="empSquare1" class="empSquares square"></div>
           <div id="empSquare2" class="empSquares square"></div>
@@ -105,7 +99,7 @@
           <div id="empSquare4" class="empSquares square"></div>
           <div id="empSquare5" class="empSquares square"></div>
         </div>
-        <!-- Row for numbered squares -->
+        <!-- Numbered squares row -->
         <div class="row">
           <div id="square1" class="square numSquares" onclick="revealSquare(this)"><span>0</span></div>
           <div id="square2" class="square numSquares" onclick="revealSquare(this)"><span>0</span></div>
@@ -121,12 +115,14 @@
     </div>
   </div>
   <script>
-    // Wait until the DOM is fully loaded before attaching event listeners.
     document.addEventListener("DOMContentLoaded", function() {
       console.log("DOM fully loaded, attaching event listeners...");
-
-      // Connect to the Socket.io server.
-      const socket = io("http://192.168.54.155:5000");
+      
+      // Update the endpoint below to your secure server URL.
+      // For example, if your Socket.IO server is hosted on Heroku at:
+      // "https://your-app-name.herokuapp.com", use that URL.
+      // If you use the same domain, you can simply use: io();
+      const socket = io("https://your-secure-server-domain.com:5000");
       
       socket.on("connect", () => {
         console.log("Socket connected with ID:", socket.id);
@@ -136,10 +132,8 @@
         console.log("Socket disconnected");
       });
       
-      // Listen for the game state from the server and update the UI.
       socket.on("gameState", (state) => {
         console.log("Received gameState from server:", state);
-        // Update numbered squares:
         const numSquares = document.querySelectorAll(".numSquares span");
         state.numberedSquares.forEach((value, idx) => {
           numSquares[idx].textContent = value;
@@ -151,12 +145,10 @@
             numSquares[idx].parentElement.style.opacity = "1";
           }
         });
-        // Update empty squares:
         const empSquares = document.querySelectorAll(".empSquares");
         state.emptySquares.forEach((value, idx) => {
           empSquares[idx].textContent = value;
         });
-        // Handle hide state:
         if (state.hide) {
           numSquares.forEach(s => s.style.opacity = 0);
         } else {
@@ -164,25 +156,21 @@
         }
       });
       
-      // Prompt for player role and emit join event.
       let playerRole = prompt("Enter your role (player1, player2, admin):");
       console.log("Player role entered:", playerRole);
       socket.emit("joinGame", playerRole);
       console.log("Emitted 'joinGame' event with role:", playerRole);
       
-      // Attach event listener for the Shuffle button.
       document.getElementById("shuffleButton").addEventListener("click", () => {
         console.log("Shuffle button clicked");
         socket.emit("shuffle", { role: playerRole, action: "shuffleClicked" });
       });
       
-      // Attach event listener for the Hide button.
       document.getElementById("hideButton").addEventListener("click", () => {
         console.log("Hide button clicked");
         socket.emit("hide", { role: playerRole, action: "hideClicked" });
       });
       
-      // Make the revealSquare function available globally.
       window.revealSquare = function(element) {
         console.log("Reveal square clicked:", element.id);
         socket.emit("revealSquare", { square: element.id, role: playerRole });
