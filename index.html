@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Squares Game</title>
   <style>
-    /* Your original CSS */
+    /* Basic styling for the game */
     body {
       display: flex;
       justify-content: center;
@@ -79,7 +79,7 @@
     .hideButton {
       margin-left: 30px;
     }
-    /* Square Colors */
+    /* Colors for numbered squares */
     #square1 { background-color: #FF5733; }
     #square2 { background-color: #33FF57; }
     #square3 { background-color: #3357FF; }
@@ -87,7 +87,7 @@
     #square5 { background-color: #33FFF5; }
     #square6 { background-color: #FFAA33; }
   </style>
-  <!-- Include Socket.io client -->
+  <!-- Include the Socket.io client library -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
@@ -120,77 +120,74 @@
       </div>
     </div>
   </div>
-
-  <!-- Client-Side Script with Debug Logging -->
   <script>
-    console.log("Client-side script starting...");
+    // Wait until the DOM is fully loaded before attaching event listeners.
+    document.addEventListener("DOMContentLoaded", function() {
+      console.log("DOM fully loaded, attaching event listeners...");
 
-    // Connect to the server
-    const socket = io("http://192.168.54.155:5000");
-    console.log("Connecting to WebSocket server at http://192.168.54.155:5000");
-
-    socket.on("connect", () => {
-      console.log("Socket connected with ID:", socket.id);
-    });
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    // Update UI when a new gameState is received from the server
-    socket.on("gameState", (state) => {
-      console.log("Received gameState from server:", state);
-      // Update numbered squares
-      const numSquares = document.querySelectorAll(".numSquares span");
-      state.numberedSquares.forEach((value, idx) => {
-        numSquares[idx].textContent = value;
-        if (state.numberedDisabled[idx]) {
-          numSquares[idx].parentElement.style.pointerEvents = "none";
-          numSquares[idx].parentElement.style.opacity = "0.5";
+      // Connect to the Socket.io server.
+      const socket = io("http://192.168.54.155:5000");
+      
+      socket.on("connect", () => {
+        console.log("Socket connected with ID:", socket.id);
+      });
+      
+      socket.on("disconnect", () => {
+        console.log("Socket disconnected");
+      });
+      
+      // Listen for the game state from the server and update the UI.
+      socket.on("gameState", (state) => {
+        console.log("Received gameState from server:", state);
+        // Update numbered squares:
+        const numSquares = document.querySelectorAll(".numSquares span");
+        state.numberedSquares.forEach((value, idx) => {
+          numSquares[idx].textContent = value;
+          if (state.numberedDisabled[idx]) {
+            numSquares[idx].parentElement.style.pointerEvents = "none";
+            numSquares[idx].parentElement.style.opacity = "0.5";
+          } else {
+            numSquares[idx].parentElement.style.pointerEvents = "auto";
+            numSquares[idx].parentElement.style.opacity = "1";
+          }
+        });
+        // Update empty squares:
+        const empSquares = document.querySelectorAll(".empSquares");
+        state.emptySquares.forEach((value, idx) => {
+          empSquares[idx].textContent = value;
+        });
+        // Handle hide state:
+        if (state.hide) {
+          numSquares.forEach(s => s.style.opacity = 0);
         } else {
-          numSquares[idx].parentElement.style.pointerEvents = "auto";
-          numSquares[idx].parentElement.style.opacity = "1";
+          numSquares.forEach(s => s.style.opacity = 1);
         }
       });
-      // Update empty squares
-      const empSquares = document.querySelectorAll(".empSquares");
-      state.emptySquares.forEach((value, idx) => {
-        empSquares[idx].textContent = value;
+      
+      // Prompt for player role and emit join event.
+      let playerRole = prompt("Enter your role (player1, player2, admin):");
+      console.log("Player role entered:", playerRole);
+      socket.emit("joinGame", playerRole);
+      console.log("Emitted 'joinGame' event with role:", playerRole);
+      
+      // Attach event listener for the Shuffle button.
+      document.getElementById("shuffleButton").addEventListener("click", () => {
+        console.log("Shuffle button clicked");
+        socket.emit("shuffle", { role: playerRole, action: "shuffleClicked" });
       });
-      // Optionally update hide state (for example, hide numbers)
-      if (state.hide) {
-        numSquares.forEach(s => s.style.opacity = 0);
-      } else {
-        numSquares.forEach(s => s.style.opacity = 1);
+      
+      // Attach event listener for the Hide button.
+      document.getElementById("hideButton").addEventListener("click", () => {
+        console.log("Hide button clicked");
+        socket.emit("hide", { role: playerRole, action: "hideClicked" });
+      });
+      
+      // Make the revealSquare function available globally.
+      window.revealSquare = function(element) {
+        console.log("Reveal square clicked:", element.id);
+        socket.emit("revealSquare", { square: element.id, role: playerRole });
       }
     });
-
-    // Prompt for player role and notify server
-    let playerRole = prompt("Enter your role (player1, player2, admin):");
-    console.log("Player role entered:", playerRole);
-    socket.emit("joinGame", playerRole);
-    console.log("Emitted 'joinGame' event with role:", playerRole);
-
-    // Shuffle button handler
-    document.getElementById("shuffleButton").addEventListener("click", () => {
-      console.log("Shuffle button clicked");
-      socket.emit("shuffle", { role: playerRole, action: "shuffleClicked" });
-      console.log("Emitted 'shuffle' event with data:", { role: playerRole, action: "shuffleClicked" });
-      // (The server will update gameState and broadcast it to all clients.)
-    });
-
-    // Hide button handler
-    document.getElementById("hideButton").addEventListener("click", () => {
-      console.log("Hide button clicked");
-      socket.emit("hide", { role: playerRole, action: "hideClicked" });
-      console.log("Emitted 'hide' event with data:", { role: playerRole, action: "hideClicked" });
-    });
-
-    // Reveal square function: send event to server to update gameState
-    function revealSquare(element) {
-      console.log("Reveal square clicked:", element.id);
-      socket.emit("revealSquare", { square: element.id, role: playerRole });
-      console.log("Emitted 'revealSquare' event for", element.id);
-    }
   </script>
 </body>
 </html>
