@@ -10,7 +10,7 @@ console.log("Starting HTTP server...");
 
 const app = express();
 
-// Connect to MongoDB using Atlas URI from .env
+// Connect to MongoDB using the connection string from .env
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -19,7 +19,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Enable CORS using FRONTEND_URL from .env (e.g., https://testweb0001.github.io/squaresgame/)
+// Enable CORS for the frontend URL from .env (e.g., https://testweb0001.github.io/squaresgame/)
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -39,7 +39,8 @@ app.get("/", (req, res) => {
   }
 });
 
-// Global game state updated to use 7 numbered squares and 6 empty squares.
+// Global game state with updated dimensions:
+// 7 numbered squares, 7 numberedDisabled flags, and 6 empty squares.
 let gameState = {
   numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
   numberedDisabled: [false, false, false, false, false, false, false],
@@ -48,7 +49,7 @@ let gameState = {
   hide: false,
 };
 
-// Function to reset the game state with the new dimensions
+// Function to reset the game state (using the new dimensions)
 function resetGameState() {
   gameState = {
     numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
@@ -70,7 +71,7 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log(`New client connected: ${socket.id}`);
-
+  
   socket.on("joinGame", (role) => {
     try {
       console.log(`Client ${socket.id} joined as ${role}`);
@@ -80,7 +81,7 @@ io.on("connection", (socket) => {
       console.error("Error in joinGame event:", err);
     }
   });
-
+  
   socket.on("shuffle", (data) => {
     try {
       if (socket.role !== "admin") {
@@ -88,7 +89,7 @@ io.on("connection", (socket) => {
         return;
       }
       console.log("Shuffling squares...");
-      // Create 6 random numbers and one dot, total 7 values.
+      // Generate 6 random numbers and add a dot, for a total of 7 values.
       const values = Array.from({ length: 6 }, () => Math.floor(Math.random() * 10));
       values.push(".");
       values.sort(() => Math.random() - 0.5);
@@ -105,16 +106,16 @@ io.on("connection", (socket) => {
       console.error("Error in shuffle event:", err);
     }
   });
-
+  
   socket.on("revealSquare", (data) => {
     try {
-      // Allow both "admin" and roles starting with "player"
+      // Allow both admin and roles that start with "player"
       if (!socket.role || (socket.role !== "admin" && !socket.role.startsWith("player"))) {
         console.log(`Unauthorized reveal attempt by ${socket.id}`);
         return;
       }
       console.log("Received 'revealSquare' event:", data);
-      const squareId = data.square; // e.g., "square1"
+      const squareId = data.square; // Expecting format "square1", "square2", etc.
       const index = parseInt(squareId.replace("square", "")) - 1;
       if (isNaN(index) || index < 0 || index >= gameState.numberedSquares.length) {
         console.log("Invalid square id received:", squareId);
@@ -122,6 +123,7 @@ io.on("connection", (socket) => {
       }
       if (!gameState.numberedDisabled[index]) {
         gameState.numberedDisabled[index] = true;
+        // Update the emptySquares array if there's space
         if (gameState.empIndex < gameState.emptySquares.length) {
           gameState.emptySquares[gameState.empIndex] = gameState.numberedSquares[index];
           console.log(
@@ -148,7 +150,7 @@ io.on("connection", (socket) => {
       console.error("Error in revealSquare event:", err);
     }
   });
-
+  
   socket.on("hide", (data) => {
     try {
       if (socket.role !== "admin") {
@@ -163,7 +165,7 @@ io.on("connection", (socket) => {
       console.error("Error in hide event:", err);
     }
   });
-
+  
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
   });
