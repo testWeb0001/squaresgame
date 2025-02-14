@@ -19,7 +19,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Enable CORS for the frontend URL
+// Enable CORS for the frontend URL (e.g., https://testweb0001.github.io)
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -74,7 +74,7 @@ io.on("connection", (socket) => {
   socket.on("joinGame", (role) => {
     try {
       console.log(`Client ${socket.id} joined as ${role}`);
-      socket.role = role; // Store the role on the socket for later validation
+      socket.role = role; // Store role for later validation
       socket.emit("gameState", gameState);
     } catch (err) {
       console.error("Error in joinGame event:", err);
@@ -87,7 +87,6 @@ io.on("connection", (socket) => {
         console.log(`Unauthorized shuffle attempt by ${socket.id}`);
         return;
       }
-      
       console.log("Shuffling squares...");
       const values = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10));
       values.push(".");
@@ -112,7 +111,6 @@ io.on("connection", (socket) => {
         console.log(`Unauthorized reveal attempt by ${socket.id}`);
         return;
       }
-      
       console.log("Received 'revealSquare' event:", data);
       const squareId = data.square;
       const index = parseInt(squareId.replace("square", "")) - 1;
@@ -136,7 +134,7 @@ io.on("connection", (socket) => {
         io.emit("gameState", gameState);
         
         // Auto-reset game when all squares are revealed
-        if (gameState.numberedDisabled.every((state) => state === true)) {
+        if (gameState.numberedDisabled.every(state => state === true)) {
           console.log("All squares revealed, resetting game in 3 seconds...");
           setTimeout(() => {
             resetGameState();
@@ -157,7 +155,6 @@ io.on("connection", (socket) => {
         console.log(`Unauthorized hide attempt by ${socket.id}`);
         return;
       }
-      
       console.log("Received 'hide' event:", data);
       gameState.hide = !gameState.hide;
       io.emit("gameState", gameState);
