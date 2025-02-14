@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
   }
 });
 
-// Global game state with updated sizes for 7 numbered squares and 6 empty squares.
+// Global game state with 7 numbered squares and 6 empty squares
 let gameState = {
   numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
   numberedDisabled: [false, false, false, false, false, false, false],
@@ -48,7 +48,7 @@ let gameState = {
   hide: false,
 };
 
-// Function to reset the game state
+// Function to reset the game state to the new dimensions
 function resetGameState() {
   gameState = {
     numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
@@ -88,8 +88,9 @@ io.on("connection", (socket) => {
         return;
       }
       console.log("Shuffling squares...");
+      // Create 7 values (6 random numbers and one ".")
       const values = Array.from({ length: 6 }, () => Math.floor(Math.random() * 10));
-      values.push("."); // Total 7 values
+      values.push(".");
       values.sort(() => Math.random() - 0.5);
       
       gameState.numberedSquares = values;
@@ -113,7 +114,7 @@ io.on("connection", (socket) => {
         return;
       }
       console.log("Received 'revealSquare' event:", data);
-      const squareId = data.square; // e.g., "square1"
+      const squareId = data.square;
       const index = parseInt(squareId.replace("square", "")) - 1;
       if (isNaN(index) || index < 0 || index >= gameState.numberedSquares.length) {
         console.log("Invalid square id received:", squareId);
