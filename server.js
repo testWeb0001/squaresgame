@@ -21,6 +21,32 @@ mongoose
 
 // Enable CORS for the frontend URL
 app.use(cors({
+  origin: process.env.FR
+
+/*
+require("dotenv").config();
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const cors = require("cors");
+const path = require("path");
+const mongoose = require("mongoose");
+
+console.log("Starting HTTP server...");
+
+const app = express();
+
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("MongoDB connection error:", err));
+
+// Enable CORS for the frontend URL
+app.use(cors({
   origin: process.env.FRONTEND_URL,
   methods: ["GET", "POST"]
 }));
@@ -169,6 +195,7 @@ io.on("connection", (socket) => {
     console.log(`Client disconnected: ${socket.id}`);
   });
 });
+*/
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, "0.0.0.0", () => {
