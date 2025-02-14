@@ -82,10 +82,12 @@
 </head>
 <body>
   <div class="main-container">
+    <!-- Button container at the top (Shuffle and Hide/Reveal) -->
     <div class="button-square-container">
       <button class="shufButton" id="shuffleButton">Shuffle</button>
       <button class="hideButton" id="hideButton">Hide/Reveal</button>
     </div>
+    <!-- Square container with empty row above numbered squares -->
     <div class="square-container">
       <div class="row empty-row">
         <div id="empSquare1" class="empSquares square"></div>
@@ -109,9 +111,9 @@
       try {
         console.log("Initializing game...");
         // Update the URL below to point to your backend server.
-        const socket = io("http://localhost:5000", {
-          transports: ['websocket']
-        });
+        // For local testing, use "http://localhost:5000".
+        // For production, use your secure backend URL (e.g., from Heroku).
+        const socket = io("http://localhost:5000", { transports: ['websocket'] });
       
         socket.on("connect", () => console.log("Connected to server:", socket.id));
       
