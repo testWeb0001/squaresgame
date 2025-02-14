@@ -10,7 +10,7 @@ console.log("Starting HTTP server...");
 
 const app = express();
 
-// Connect to MongoDB
+// Connect to MongoDB using Atlas URI from .env
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -19,7 +19,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Enable CORS for the frontend URL (e.g., https://testweb0001.github.io)
+// Enable CORS using FRONTEND_URL from .env
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -48,7 +48,7 @@ let gameState = {
   hide: false,
 };
 
-// Reset the game state
+// Function to reset the game state
 function resetGameState() {
   gameState = {
     numberedSquares: ["0", "0", "0", "0", "0", "0"],
@@ -74,7 +74,7 @@ io.on("connection", (socket) => {
   socket.on("joinGame", (role) => {
     try {
       console.log(`Client ${socket.id} joined as ${role}`);
-      socket.role = role; // Store role for later validation
+      socket.role = role; // Save the role for later validation
       socket.emit("gameState", gameState);
     } catch (err) {
       console.error("Error in joinGame event:", err);
@@ -114,27 +114,25 @@ io.on("connection", (socket) => {
       console.log("Received 'revealSquare' event:", data);
       const squareId = data.square;
       const index = parseInt(squareId.replace("square", "")) - 1;
-      
       if (isNaN(index) || index < 0 || index >= gameState.numberedSquares.length) {
         console.log("Invalid square id received:", squareId);
         return;
       }
-      
       if (!gameState.numberedDisabled[index]) {
         gameState.numberedDisabled[index] = true;
-        
         if (gameState.empIndex < gameState.emptySquares.length) {
           gameState.emptySquares[gameState.empIndex] = gameState.numberedSquares[index];
-          console.log(`Revealed ${squareId}: value ${gameState.numberedSquares[index]} copied to empty square at index ${gameState.empIndex}`);
+          console.log(
+            `Revealed ${squareId}: value ${gameState.numberedSquares[index]} copied to empty square at index ${gameState.empIndex}`
+          );
           gameState.empIndex++;
         } else {
           console.log("All empty squares are filled.");
         }
-        
         io.emit("gameState", gameState);
         
-        // Auto-reset game when all squares are revealed
-        if (gameState.numberedDisabled.every(state => state === true)) {
+        // Auto-reset if all squares have been revealed
+        if (gameState.numberedDisabled.every((state) => state === true)) {
           console.log("All squares revealed, resetting game in 3 seconds...");
           setTimeout(() => {
             resetGameState();
