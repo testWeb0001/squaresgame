@@ -74,7 +74,7 @@ io.on("connection", (socket) => {
   socket.on("joinGame", (role) => {
     try {
       console.log(`Client ${socket.id} joined as ${role}`);
-      socket.role = role; // Store the role for later validation
+      socket.role = role; // Store the role on the socket for later validation
       socket.emit("gameState", gameState);
     } catch (err) {
       console.error("Error in joinGame event:", err);
@@ -114,7 +114,7 @@ io.on("connection", (socket) => {
       }
       
       console.log("Received 'revealSquare' event:", data);
-      const squareId = data.square; // e.g., "square1"
+      const squareId = data.square;
       const index = parseInt(squareId.replace("square", "")) - 1;
       
       if (isNaN(index) || index < 0 || index >= gameState.numberedSquares.length) {
