@@ -76,7 +76,7 @@
     #square4 { background-color: #FF33A1; }
     #square5 { background-color: #33FFF5; }
     #square6 { background-color: #FFAA33; }
-    #square7 { background-color: #FFFF00; } /* New square color (optional) */
+    #square7 { background-color: #CCCCCC; } /* New color for square7 */
   </style>
   <!-- Socket.IO client library -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -122,21 +122,27 @@
         socket.on("gameState", (state) => {
           try {
             console.log("Game state updated:", state);
-            const numSquares = document.querySelectorAll(".numSquares span");
+            // Use a robust selector: get each numbered square element and then its child span
+            const numSquareElements = document.querySelectorAll(".numSquares");
+            const numSquares = Array.from(numSquareElements).map(el => el.querySelector("span"));
             state.numberedSquares.forEach((value, idx) => {
-              numSquares[idx].textContent = value;
-              if (state.numberedDisabled[idx]) {
-                numSquares[idx].parentElement.style.pointerEvents = "none";
-                numSquares[idx].parentElement.style.opacity = "0.5";
-              } else {
-                numSquares[idx].parentElement.style.pointerEvents = "auto";
-                numSquares[idx].parentElement.style.opacity = "1";
+              if (numSquares[idx]) {
+                numSquares[idx].textContent = value;
+                if (state.numberedDisabled[idx]) {
+                  numSquareElements[idx].style.pointerEvents = "none";
+                  numSquareElements[idx].style.opacity = "0.5";
+                } else {
+                  numSquareElements[idx].style.pointerEvents = "auto";
+                  numSquareElements[idx].style.opacity = "1";
+                }
               }
             });
       
             const empSquares = document.querySelectorAll(".empSquares");
             state.emptySquares.forEach((value, idx) => {
-              empSquares[idx].textContent = value;
+              if (empSquares[idx]) {
+                empSquares[idx].textContent = value;
+              }
             });
       
             if (state.hide) {
@@ -149,7 +155,7 @@
           }
         });
       
-        // Prompt now only asks for "player1" or "player2" (admin is hidden)
+        // Prompt text updated: admin is not shown
         let playerRole = prompt("Enter your role (player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
