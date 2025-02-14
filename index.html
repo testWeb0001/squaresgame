@@ -109,8 +109,7 @@
       try {
         console.log("Initializing game...");
         // For production, update this URL to your deployed secure backend's URL.
-        // Example: if your backend is deployed on Glitch, use:
-        // "https://boatneck-aware-locket.glitch.me"
+        // Example: if your backend is deployed on Glitch, use "https://boatneck-aware-locket.glitch.me"
         const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
       
         socket.on("connect", () => console.log("Connected to server:", socket.id));
@@ -147,7 +146,8 @@
           }
         });
       
-        let playerRole = prompt("Enter your role (player1, player2, admin):");
+        // Modified prompt text: "admin" is no longer listed
+        let playerRole = prompt("Enter your role (player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
         socket.emit("joinGame", playerRole);
