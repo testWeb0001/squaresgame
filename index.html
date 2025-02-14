@@ -76,7 +76,7 @@
     #square4 { background-color: #FF33A1; }
     #square5 { background-color: #33FFF5; }
     #square6 { background-color: #FFAA33; }
-    #square7 { background-color: #FFFF00; }
+    #square7 { background-color: #FFFF00; } /* New square color (optional) */
   </style>
   <!-- Socket.IO client library -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
@@ -149,7 +149,7 @@
           }
         });
       
-        // Modified prompt text: "admin" is no longer listed
+        // Prompt now only asks for "player1" or "player2" (admin is hidden)
         let playerRole = prompt("Enter your role (player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
