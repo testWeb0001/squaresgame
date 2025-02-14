@@ -19,7 +19,7 @@ mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Enable CORS using FRONTEND_URL from .env
+// Enable CORS using FRONTEND_URL from .env (e.g., https://testweb0001.github.io/squaresgame/)
 app.use(
   cors({
     origin: process.env.FRONTEND_URL,
@@ -39,11 +39,11 @@ app.get("/", (req, res) => {
   }
 });
 
-// Global game state
+// Global game state with updated sizes for 7 numbered squares and 6 empty squares.
 let gameState = {
-  numberedSquares: ["0", "0", "0", "0", "0", "0"],
-  numberedDisabled: [false, false, false, false, false, false],
-  emptySquares: ["", "", "", "", ""],
+  numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
+  numberedDisabled: [false, false, false, false, false, false, false],
+  emptySquares: ["", "", "", "", "", ""],
   empIndex: 0,
   hide: false,
 };
@@ -51,9 +51,9 @@ let gameState = {
 // Function to reset the game state
 function resetGameState() {
   gameState = {
-    numberedSquares: ["0", "0", "0", "0", "0", "0"],
-    numberedDisabled: [false, false, false, false, false, false],
-    emptySquares: ["", "", "", "", ""],
+    numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
+    numberedDisabled: [false, false, false, false, false, false, false],
+    emptySquares: ["", "", "", "", "", ""],
     empIndex: 0,
     hide: false,
   };
@@ -88,13 +88,13 @@ io.on("connection", (socket) => {
         return;
       }
       console.log("Shuffling squares...");
-      const values = Array.from({ length: 5 }, () => Math.floor(Math.random() * 10));
-      values.push(".");
+      const values = Array.from({ length: 6 }, () => Math.floor(Math.random() * 10));
+      values.push("."); // Total 7 values
       values.sort(() => Math.random() - 0.5);
       
       gameState.numberedSquares = values;
-      gameState.numberedDisabled = [false, false, false, false, false, false];
-      gameState.emptySquares = ["", "", "", "", ""];
+      gameState.numberedDisabled = [false, false, false, false, false, false, false];
+      gameState.emptySquares = ["", "", "", "", "", ""];
       gameState.empIndex = 0;
       gameState.hide = false;
       
@@ -107,12 +107,13 @@ io.on("connection", (socket) => {
   
   socket.on("revealSquare", (data) => {
     try {
-      if (!socket.role || !socket.role.startsWith("player")) {
+      // Allow both admin and roles starting with "player"
+      if (!socket.role || (socket.role !== "admin" && !socket.role.startsWith("player"))) {
         console.log(`Unauthorized reveal attempt by ${socket.id}`);
         return;
       }
       console.log("Received 'revealSquare' event:", data);
-      const squareId = data.square;
+      const squareId = data.square; // e.g., "square1"
       const index = parseInt(squareId.replace("square", "")) - 1;
       if (isNaN(index) || index < 0 || index >= gameState.numberedSquares.length) {
         console.log("Invalid square id received:", squareId);
@@ -131,7 +132,7 @@ io.on("connection", (socket) => {
         }
         io.emit("gameState", gameState);
         
-        // Auto-reset if all squares have been revealed
+        // Auto-reset game when all numbered squares are revealed
         if (gameState.numberedDisabled.every((state) => state === true)) {
           console.log("All squares revealed, resetting game in 3 seconds...");
           setTimeout(() => {
