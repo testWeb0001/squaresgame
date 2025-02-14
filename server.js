@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
   }
 });
 
-// Global game state with 7 numbered squares and 6 empty squares
+// Global game state updated to use 7 numbered squares and 6 empty squares.
 let gameState = {
   numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
   numberedDisabled: [false, false, false, false, false, false, false],
@@ -48,7 +48,7 @@ let gameState = {
   hide: false,
 };
 
-// Function to reset the game state to the new dimensions
+// Function to reset the game state with the new dimensions
 function resetGameState() {
   gameState = {
     numberedSquares: ["0", "0", "0", "0", "0", "0", "0"],
@@ -70,7 +70,7 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
   console.log(`New client connected: ${socket.id}`);
-  
+
   socket.on("joinGame", (role) => {
     try {
       console.log(`Client ${socket.id} joined as ${role}`);
@@ -80,7 +80,7 @@ io.on("connection", (socket) => {
       console.error("Error in joinGame event:", err);
     }
   });
-  
+
   socket.on("shuffle", (data) => {
     try {
       if (socket.role !== "admin") {
@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
         return;
       }
       console.log("Shuffling squares...");
-      // Create 7 values (6 random numbers and one ".")
+      // Create 6 random numbers and one dot, total 7 values.
       const values = Array.from({ length: 6 }, () => Math.floor(Math.random() * 10));
       values.push(".");
       values.sort(() => Math.random() - 0.5);
@@ -105,16 +105,16 @@ io.on("connection", (socket) => {
       console.error("Error in shuffle event:", err);
     }
   });
-  
+
   socket.on("revealSquare", (data) => {
     try {
-      // Allow both admin and roles starting with "player"
+      // Allow both "admin" and roles starting with "player"
       if (!socket.role || (socket.role !== "admin" && !socket.role.startsWith("player"))) {
         console.log(`Unauthorized reveal attempt by ${socket.id}`);
         return;
       }
       console.log("Received 'revealSquare' event:", data);
-      const squareId = data.square;
+      const squareId = data.square; // e.g., "square1"
       const index = parseInt(squareId.replace("square", "")) - 1;
       if (isNaN(index) || index < 0 || index >= gameState.numberedSquares.length) {
         console.log("Invalid square id received:", squareId);
@@ -148,7 +148,7 @@ io.on("connection", (socket) => {
       console.error("Error in revealSquare event:", err);
     }
   });
-  
+
   socket.on("hide", (data) => {
     try {
       if (socket.role !== "admin") {
@@ -163,7 +163,7 @@ io.on("connection", (socket) => {
       console.error("Error in hide event:", err);
     }
   });
-  
+
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
   });
