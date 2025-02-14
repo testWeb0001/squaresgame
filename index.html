@@ -88,7 +88,7 @@
       <button class="hideButton" id="hideButton">Hide/Reveal</button>
     </div>
     <div class="square-container">
-      <!-- Empty row with 6 squares -->
+      <!-- Empty row: 6 squares -->
       <div class="row empty-row">
         <div id="empSquare1" class="empSquares square"></div>
         <div id="empSquare2" class="empSquares square"></div>
@@ -97,7 +97,7 @@
         <div id="empSquare5" class="empSquares square"></div>
         <div id="empSquare6" class="empSquares square"></div>
       </div>
-      <!-- Numbered row with 7 squares -->
+      <!-- Numbered row: 7 squares -->
       <div class="row">
         <div id="square1" class="square numSquares" onclick="revealSquare(this)"><span>0</span></div>
         <div id="square2" class="square numSquares" onclick="revealSquare(this)"><span>0</span></div>
@@ -124,7 +124,7 @@
         socket.on("gameState", (state) => {
           try {
             console.log("Game state updated:", state);
-            // Select each element with the class "numSquares" and map to its child <span>
+            // Select all numbered square elements and get each child <span>
             const numSquareElements = document.querySelectorAll(".numSquares");
             const numSquares = Array.from(numSquareElements).map(el => el.querySelector("span"));
             state.numberedSquares.forEach((value, idx) => {
@@ -157,7 +157,7 @@
           }
         });
       
-        // Prompt text now only asks for player1 or player2 (admin is not shown)
+        // Prompt now only asks for "player1" or "player2"
         let playerRole = prompt("Enter your role (player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
