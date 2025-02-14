@@ -113,7 +113,7 @@
         // Update the URL below to point to your backend server.
         // For local testing, use "http://localhost:5000".
         // For production, use your secure backend URL (e.g., from Heroku).
-        const socket = io("http://localhost:5000", { transports: ['websocket'] });
+        const socket = io("https://your-app-name.herokuapp.com", { transports: ['websocket'] });
       
         socket.on("connect", () => console.log("Connected to server:", socket.id));
       
