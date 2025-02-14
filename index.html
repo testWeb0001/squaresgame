@@ -108,14 +108,12 @@
     document.addEventListener("DOMContentLoaded", function() {
       try {
         console.log("Initializing game...");
-        // For local testing, use "http://localhost:5000".
-        // For production, update this URL to your secure backend URL, e.g., "https://squaresgame-server.herokuapp.com"
-        const socket = io("http://localhost:5000", { transports: ['websocket'] });
+        // For production, update this URL to your secure backend's URL.
+        // Example: if deployed on Glitch, use "https://squaresgame.glitch.me"
+        const socket = io("https://squaresgame.glitch.me", { transports: ['websocket'] });
       
         socket.on("connect", () => console.log("Connected to server:", socket.id));
-      
         socket.on("disconnect", (reason) => console.warn("Disconnected from server:", reason));
-      
         socket.on("connect_error", (error) => console.error("Connection error:", error));
       
         socket.on("gameState", (state) => {
@@ -178,7 +176,7 @@
           } catch (err) {
             console.error("Error during revealSquare:", err);
           }
-        }
+        };
       } catch (error) {
         console.error("Error initializing game:", error);
       }
