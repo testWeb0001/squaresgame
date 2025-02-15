@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Squares Game</title>
+  <style>
+    /* Basic layout styles */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f0f0f0;
+    }
+    .container {
+      text-align: center;
+    }
+    .btn-group {
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      margin: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    /* Display row: 5 cells */
+    .display-cell {
+      width: 2cm;
+      height: 2cm;
+      border-radius: 10px;
+      background: #d3d3d3;
+      border: 1px solid #ccc;
+      font-size: 1.5cm;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    /* Colored row: 7 cells */
+    .color-cell {
+      width: 2cm;
+      height: 2cm;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.5cm;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: opacity 0.5s;
+    }
+    /* Background colors for colored cells */
+    #cell1 { background: #FF5733; }
+    #cell2 { background: #33FF57; }
+    #cell3 { background: #3357FF; }
+    #cell4 { background: #FF33A1; }
+    #cell5 { background: #33FFF5; }
+    #cell6 { background: #FFAA33; }
+    #cell7 { background: #FFFF00; } /* Yellow for cell7 */
+  </style>
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Button Group -->
+    <div class="btn-group">
+      <button id="shuffleBtn" class="btn">Shuffle</button>
+      <button id="hideBtn" class="btn">Hide/Reveal</button>
+    </div>
+    <div class="grid">
+      <!-- Display row: 5 cells -->
+      <div class="row" id="displayRow">
+        <div id="display1" class="display-cell"></div>
+        <div id="display2" class="display-cell"></div>
+        <div id="display3" class="display-cell"></div>
+        <div id="display4" class="display-cell"></div>
+        <div id="display5" class="display-cell"></div>
+      </div>
+      <!-- Colored row: 7 cells -->
+      <div class="row" id="colorRow">
+        <div id="cell1" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+        <div id="cell2" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+        <div id="cell3" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+        <div id="cell4" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+        <div id="cell5" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+        <div id="cell6" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+        <div id="cell7" class="color-cell" onclick="cellClicked(this)"><span>0</span></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
+      
+      socket.on("connect", () => console.log("Connected to server:", socket.id));
+      socket.on("disconnect", (reason) => console.warn("Disconnected:", reason));
+      socket.on("connect_error", (error) => console.error("Connection error:", error));
+      
+      // Update UI when game state is received.
+      socket.on("gameState", (state) => {
+        console.log("Game state received:", state);
+        // Update colored row.
+        const coloredCells = document.querySelectorAll("#colorRow .color-cell");
+        coloredCells.forEach((cell, idx) => {
+          const span = cell.querySelector("span");
+          if (state.numberedSquares && state.numberedSquares[idx] !== undefined) {
+            span.textContent = state.numberedSquares[idx];
+          }
+          if (state.numberedDisabled && state.numberedDisabled[idx]) {
+            cell.style.pointerEvents = "none";
+            cell.style.opacity = "0.5";
+          } else {
+            cell.style.pointerEvents = "auto";
+            cell.style.opacity = "1";
+          }
+        });
+        // Update display row.
+        const displayCells = document.querySelectorAll("#displayRow .display-cell");
+        displayCells.forEach((cell, idx) => {
+          if (state.emptySquares && state.emptySquares[idx] !== undefined) {
+            cell.textContent = state.emptySquares[idx];
+          }
+        });
+        // Toggle visibility of colored cell values if hide flag is true.
+        if (state.hide) {
+          coloredCells.forEach(cell => {
+            cell.querySelector("span").style.opacity = 0;
+          });
+        } else {
+          coloredCells.forEach(cell => {
+            cell.querySelector("span").style.opacity = 1;
+          });
+        }
+      });
+      
+      // Prompt for role.
+      let role = prompt("Enter your role (player1, player2, admin):");
+      if (!role) role = "player1";
+      console.log("Role:", role);
+      socket.emit("joinGame", role);
+      
+      // Shuffle button.
+      document.getElementById("shuffleBtn").addEventListener("click", () => {
+        console.log("Shuffle button clicked");
+        socket.emit("shuffle", { role });
+      });
+      
+      // Hide/Reveal button.
+      document.getElementById("hideBtn").addEventListener("click", () => {
+        console.log("Hide/Reveal button clicked");
+        socket.emit("hide", { role });
+      });
+      
+      // When a colored cell is clicked, send reveal event.
+      window.cellClicked = function(el) {
+        console.log("Colored cell clicked:", el.id);
+        // Convert cell id (e.g., "cell3") to square id ("square3")
+        const squareId = el.id.replace("cell", "square");
+        socket.emit("revealSquare", { square: squareId, role });
+      };
+    });
+  </script>
+</body>
+</html>
