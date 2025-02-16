@@ -10,6 +10,7 @@
       --square-font-size: 24px;
       --button-font-size: 14px;
       --button-padding: 6px 12px;
+      --empty-row-margin-bottom: 2em;
     }
     @media (min-width: 600px) {
       :root {
@@ -17,23 +18,26 @@
         --square-font-size: 32px;
         --button-font-size: 16px;
         --button-padding: 8px 16px;
+        --empty-row-margin-bottom: 2.5em;
       }
     }
     @media (min-width: 900px) {
       :root {
         --square-size: 90px;
-        --square-font-size: 36px;
+        --square-font-size: 45px;
         --button-font-size: 18px;
         --button-padding: 10px 20px;
+        --empty-row-margin-bottom: 3em;
       }
     }
-    /* For large displays (1200px and up), increase square text size by 10% */
+    /* For large displays (e.g., 1200px and up) */
     @media (min-width: 1200px) {
       :root {
         --square-size: 120px;
-        --square-font-size: 52px; /* 10% larger than the previous value (approx) */
+        --square-font-size: 100px;
         --button-font-size: 20px;
         --button-padding: 12px 24px;
+        --empty-row-margin-bottom: 4em;
       }
     }
     
@@ -76,7 +80,7 @@
       flex-wrap: nowrap; /* Ensure all squares stay in one line */
     }
     .empty-row {
-      margin-bottom: 180px; /* Fixed empty space of 180px */
+      margin-bottom: var(--empty-row-margin-bottom);
     }
     .square {
       width: var(--square-size);
@@ -167,15 +171,16 @@
         console.log("Initializing game...");
         const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
         
-        // Only prompt for players; admin is not available.
-        let playerRole = prompt("Enter your role (player1, player2):");
+        let playerRole = prompt("Enter your role (admin, player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
         socket.emit("joinGame", playerRole);
         
         // Disable shuffle and hide buttons for non-admin users.
-        document.getElementById("shuffleButton").disabled = true;
-        document.getElementById("hideButton").disabled = true;
+        if (playerRole !== "admin") {
+          document.getElementById("shuffleButton").disabled = true;
+          document.getElementById("hideButton").disabled = true;
+        }
         
         socket.on("gameState", (state) => {
           // Update numbered squares
