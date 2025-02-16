@@ -10,7 +10,6 @@
       --square-font-size: 24px;
       --button-font-size: 14px;
       --button-padding: 6px 12px;
-      --empty-row-margin-bottom: 2em;
     }
     @media (min-width: 600px) {
       :root {
@@ -18,7 +17,6 @@
         --square-font-size: 32px;
         --button-font-size: 16px;
         --button-padding: 8px 16px;
-        --empty-row-margin-bottom: 2.5em;
       }
     }
     @media (min-width: 900px) {
@@ -27,7 +25,6 @@
         --square-font-size: 45px;
         --button-font-size: 18px;
         --button-padding: 10px 20px;
-        --empty-row-margin-bottom: 3em;
       }
     }
     /* For large displays (e.g., 1200px and up) */
@@ -37,7 +34,6 @@
         --square-font-size: 100px;
         --button-font-size: 20px;
         --button-padding: 12px 24px;
-        --empty-row-margin-bottom: 4em;
       }
     }
     
@@ -80,7 +76,7 @@
       flex-wrap: nowrap; /* Ensure all squares stay in one line */
     }
     .empty-row {
-      margin-bottom: var(--empty-row-margin-bottom);
+      margin-bottom: 180px;  /* Fixed 180px empty space */
     }
     .square {
       width: var(--square-size);
