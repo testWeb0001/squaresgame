@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Squares Game</title>
   <style>
+    /* Basic styling for centering content */
     body {
       display: flex;
       justify-content: center;
@@ -35,6 +36,7 @@
       align-items: center;
       margin-bottom: 10px;
     }
+    /* Empty row: 5 squares */
     .empty-row {
       margin-bottom: 3cm;
     }
@@ -82,15 +84,18 @@
       visibility: hidden;
     }
   </style>
+  <!-- Include Socket.IO client library -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
   <div class="main-container">
+    <!-- Button container -->
     <div class="button-square-container">
       <button class="shufButton" id="shuffleButton">Shuffle</button>
       <button class="hideButton" id="hideButton">Hide</button>
     </div>
     <div class="square-container">
+      <!-- Empty row: 5 squares for revealed values -->
       <div class="row empty-row">
         <div id="empSquare1" class="empSquares square"></div>
         <div id="empSquare2" class="empSquares square"></div>
@@ -98,6 +103,7 @@
         <div id="empSquare4" class="empSquares square"></div>
         <div id="empSquare5" class="empSquares square"></div>
       </div>
+      <!-- Numbered row: 7 colored squares -->
       <div class="row">
         <div id="square1" class="square numSquares" onclick="revealSquare(this)"><span>0</span></div>
         <div id="square2" class="square numSquares" onclick="revealSquare(this)"><span>0</span></div>
@@ -110,29 +116,40 @@
     </div>
   </div>
   <script>
+    // When the DOM is fully loaded, initialize the game.
     document.addEventListener("DOMContentLoaded", function() {
       try {
         console.log("Initializing game...");
         const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
         
-        let playerRole = prompt("Enter your role (player1, player2):");
+        let playerRole = prompt("Enter your role (admin, player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
         socket.emit("joinGame", playerRole);
         
+        // Disable shuffle, hide, and reveal for non-admin users.
+        if (playerRole !== "admin") {
+          document.getElementById("shuffleButton").disabled = true;
+          document.getElementById("hideButton").disabled = true;
+        }
+        
         socket.on("gameState", (state) => {
+          // Update numbered squares
           document.querySelectorAll(".numSquares").forEach((el, idx) => {
             el.querySelector("span").textContent = state.numberedSquares[idx];
             el.classList.toggle("hidden", state.hide);
           });
-          document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
-          
+          // Update empty squares – display value even if it is 0.
           document.querySelectorAll(".empSquares").forEach((el, idx) => {
-            el.textContent = state.emptySquares[idx] || "";
+            const val = state.emptySquares[idx];
+            el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== "")) ? val : "";
           });
+          // Update hide button text
+          document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
         });
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
+          // When shuffle is clicked, clear empty squares in the UI.
           document.querySelectorAll(".empSquares").forEach(el => el.textContent = "");
           socket.emit("shuffle", { role: playerRole });
         });
