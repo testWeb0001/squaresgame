@@ -10,6 +10,7 @@
       --square-font-size: 24px;
       --button-font-size: 14px;
       --button-padding: 6px 12px;
+      --empty-row-margin-bottom: 180px; /* 180px gap between rows */
     }
     @media (min-width: 600px) {
       :root {
@@ -46,13 +47,20 @@
       margin: 0;
       background-color: #f0f0f0;
       padding: 10px;
+      font-family: sans-serif;
     }
     .main-container {
-      display: flex;
+      display: none; /* Hidden until login */
       flex-direction: column;
       align-items: center;
       width: 100%;
       max-width: 600px;
+      padding: 20px;
+    }
+    .player-header {
+      margin-bottom: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
     }
     .button-square-container {
       display: flex;
@@ -72,11 +80,10 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 10px;
-      flex-wrap: nowrap; /* Ensure all squares stay in one line */
+      flex-wrap: nowrap; /* Keep all squares in one line */
     }
     .empty-row {
-      margin-bottom: 180px;  /* Fixed 180px empty space */
+      margin-bottom: var(--empty-row-margin-bottom);
     }
     .square {
       width: var(--square-size);
@@ -128,12 +135,59 @@
     .hidden span {
       visibility: hidden;
     }
+    /* Login modal styles */
+    .login-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .login-modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .login-modal input {
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    .login-modal button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
   <!-- Include Socket.IO client library -->
   <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
-  <div class="main-container">
+  <!-- Login Modal -->
+  <div class="login-modal" id="loginModal">
+    <div class="login-modal-content">
+      <h2>Welcome to Squares Game</h2>
+      <p>Enter your name (type "admin" for admin privileges):</p>
+      <input type="text" id="playerNameInput" placeholder="player1">
+      <br>
+      <button id="joinGameButton">Join Game</button>
+    </div>
+  </div>
+  
+  <!-- Main Game Container -->
+  <div class="main-container" id="mainContainer">
+    <div class="player-header" id="playerHeader"></div>
     <!-- Button container (admin-only actions) -->
     <div class="button-square-container">
       <button class="shufButton" id="shuffleButton">Shuffle</button>
@@ -160,33 +214,53 @@
       </div>
     </div>
   </div>
+  
   <script>
-    // When the DOM is fully loaded, initialize the game.
     document.addEventListener("DOMContentLoaded", function() {
       try {
-        console.log("Initializing game...");
+        console.log("Initializing client-side game...");
         const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
+        let displayName = "";
+        let role = "";
         
-        let playerRole = prompt("Enter your role (admin, player1, player2):");
-        if (!playerRole) playerRole = "player1";
-        console.log("Player role:", playerRole);
-        socket.emit("joinGame", playerRole);
-        
-        // Disable shuffle and hide buttons for non-admin users.
-        if (playerRole !== "admin") {
-          document.getElementById("shuffleButton").disabled = true;
-          document.getElementById("hideButton").disabled = true;
-        }
+        // When the player clicks "Join Game"
+        document.getElementById("joinGameButton").addEventListener("click", function() {
+          const input = document.getElementById("playerNameInput").value.trim();
+          displayName = input || "player1"; // Default display name is "player1"
+          // Set role: if the entered name is "admin" (case-insensitive), then role is admin; otherwise, role is "player"
+          role = (displayName.toLowerCase() === "admin") ? "admin" : "player";
+          console.log("Join Game clicked. Display Name:", displayName, "| Role:", role);
+          // Emit joinGame with the determined role
+          socket.emit("joinGame", role);
+          // Update header with the player's display name
+          document.getElementById("playerHeader").textContent = "Welcome, " + displayName;
+          // Hide the login modal and show the main container
+          document.getElementById("loginModal").style.display = "none";
+          document.getElementById("mainContainer").style.display = "flex";
+          // Enable admin buttons only if role is admin
+          if (role === "admin") {
+            document.getElementById("shuffleButton").disabled = false;
+            document.getElementById("hideButton").disabled = false;
+          } else {
+            document.getElementById("shuffleButton").disabled = true;
+            document.getElementById("hideButton").disabled = true;
+          }
+        });
         
         socket.on("gameState", (state) => {
+          console.log("Received gameState from server:", state);
           // Update numbered squares
           document.querySelectorAll(".numSquares").forEach((el, idx) => {
-            el.querySelector("span").textContent = state.numberedSquares[idx];
+            if(el.querySelector("span")) {
+              el.querySelector("span").textContent = state.numberedSquares[idx];
+            } else {
+              console.error("Missing span element in numSquare at index", idx);
+            }
             el.classList.toggle("hidden", state.hide);
           });
           // Update empty squares – display value even if it is 0.
           document.querySelectorAll(".empSquares").forEach((el, idx) => {
-            const val = state.emptySquares[idx]; // Could be 0, a number, or empty string.
+            const val = state.emptySquares[idx];
             el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== "")) ? val : "";
           });
           // Update hide button text
@@ -194,17 +268,20 @@
         });
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
+          console.log("Shuffle button clicked by", displayName);
           // Clear empty squares in the UI
           document.querySelectorAll(".empSquares").forEach(el => el.textContent = "");
-          socket.emit("shuffle", { role: playerRole });
+          socket.emit("shuffle", { role: role });
         });
         
         document.getElementById("hideButton").addEventListener("click", () => {
-          socket.emit("hide", { role: playerRole });
+          console.log("Hide button clicked by", displayName);
+          socket.emit("hide", { role: role });
         });
         
         window.revealSquare = function(element) {
-          socket.emit("revealSquare", { square: element.id, role: playerRole });
+          console.log("NumSquare clicked:", element.id, "by", displayName);
+          socket.emit("revealSquare", { square: element.id, role: role });
         };
       } catch (error) {
         console.error("Error initializing game:", error);
