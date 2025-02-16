@@ -30,11 +30,11 @@
         --empty-row-margin-bottom: 3em;
       }
     }
-    /* For large displays (e.g., 1200px and up) */
+    /* For large displays (1200px and up), increase square text size by 10% */
     @media (min-width: 1200px) {
       :root {
         --square-size: 120px;
-        --square-font-size: 48px;
+        --square-font-size: 52px; /* Increased from 48px to approx 10% larger */
         --button-font-size: 20px;
         --button-padding: 12px 24px;
         --empty-row-margin-bottom: 4em;
@@ -171,16 +171,16 @@
         console.log("Initializing game...");
         const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
         
-        let playerRole = prompt("Enter your role (admin, player1, player2):");
+        // Only prompt for players; admin is not shown.
+        let playerRole = prompt("Enter your role (player1, player2):");
         if (!playerRole) playerRole = "player1";
         console.log("Player role:", playerRole);
         socket.emit("joinGame", playerRole);
         
         // Disable shuffle and hide buttons for non-admin users.
-        if (playerRole !== "admin") {
-          document.getElementById("shuffleButton").disabled = true;
-          document.getElementById("hideButton").disabled = true;
-        }
+        // Since admin is not in the prompt, these remain disabled.
+        document.getElementById("shuffleButton").disabled = true;
+        document.getElementById("hideButton").disabled = true;
         
         socket.on("gameState", (state) => {
           // Update numbered squares
