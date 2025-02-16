@@ -6,31 +6,31 @@
   <title>Squares Game</title>
   <style>
     :root {
-      --square-size: 60px;
+      --square-size: 50px;
       --square-font-size: 24px;
       --button-font-size: 14px;
-      --button-padding: 8px 16px;
-      --empty-row-margin-bottom: 3em;
+      --button-padding: 6px 12px;
+      --empty-row-margin-bottom: 2em;
     }
     @media (min-width: 600px) {
       :root {
-        --square-size: 80px;
+        --square-size: 70px;
         --square-font-size: 32px;
         --button-font-size: 16px;
-        --button-padding: 10px 20px;
-        --empty-row-margin-bottom: 3em;
+        --button-padding: 8px 16px;
+        --empty-row-margin-bottom: 2.5em;
       }
     }
     @media (min-width: 900px) {
       :root {
-        --square-size: 100px;
-        --square-font-size: 40px;
+        --square-size: 90px;
+        --square-font-size: 36px;
         --button-font-size: 18px;
-        --button-padding: 12px 24px;
-        --empty-row-margin-bottom: 4em;
+        --button-padding: 10px 20px;
+        --empty-row-margin-bottom: 3em;
       }
     }
-
+    
     /* Basic styling for centering content */
     body {
       display: flex;
@@ -67,7 +67,7 @@
       justify-content: center;
       align-items: center;
       margin-bottom: 10px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap; /* Ensure all squares stay in one line */
     }
     .empty-row {
       margin-bottom: var(--empty-row-margin-bottom);
@@ -84,7 +84,7 @@
       margin: 5px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
       cursor: pointer;
       transition: border-radius 0.3s, opacity 0.5s, background-color 0.3s;
     }
@@ -180,8 +180,8 @@
           });
           // Update empty squares – display value even if it is 0.
           document.querySelectorAll(".empSquares").forEach((el, idx) => {
-            const val = state.emptySquares[idx]; // Could be 0, a number, or an empty string.
-            el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== "")) ? val : "";
+            const val = state.emptySquares[idx]; // Could be 0, a number, or empty string.
+            el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== \"\")) ? val : \"\";
           });
           // Update hide button text
           document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
@@ -189,7 +189,7 @@
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
           // Clear empty squares in the UI
-          document.querySelectorAll(".empSquares").forEach(el => el.textContent = "");
+          document.querySelectorAll(".empSquares").forEach(el => el.textContent = \"\");
           socket.emit("shuffle", { role: playerRole });
         });
         
