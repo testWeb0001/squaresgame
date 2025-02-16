@@ -133,6 +133,7 @@
         });
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
+          document.querySelectorAll(".empSquares").forEach(el => el.textContent = "");
           socket.emit("shuffle", { role: playerRole });
         });
         
