@@ -5,51 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Squares Game</title>
   <style>
+    :root {
+      --square-size: 60px;
+      --square-font-size: 24px;
+      --button-font-size: 14px;
+      --button-padding: 8px 16px;
+      --empty-row-margin-bottom: 3em;
+    }
+    @media (min-width: 600px) {
+      :root {
+        --square-size: 80px;
+        --square-font-size: 32px;
+        --button-font-size: 16px;
+        --button-padding: 10px 20px;
+        --empty-row-margin-bottom: 3em;
+      }
+    }
+    @media (min-width: 900px) {
+      :root {
+        --square-size: 100px;
+        --square-font-size: 40px;
+        --button-font-size: 18px;
+        --button-padding: 12px 24px;
+        --empty-row-margin-bottom: 4em;
+      }
+    }
+
     /* Basic styling for centering content */
     body {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
+      padding: 10px;
     }
     .main-container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      max-width: 600px;
     }
     .button-square-container {
       display: flex;
       align-items: center;
       gap: 20px;
       margin-bottom: 20px;
+      width: 100%;
+      justify-content: center;
     }
     .square-container {
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
     }
     .row {
       display: flex;
       justify-content: center;
       align-items: center;
       margin-bottom: 10px;
+      flex-wrap: wrap;
     }
-    /* Empty row: 5 squares */
     .empty-row {
-      margin-bottom: 3cm;
+      margin-bottom: var(--empty-row-margin-bottom);
     }
     .square {
-      width: 2cm;
-      height: 2cm;
+      width: var(--square-size);
+      height: var(--square-size);
       border-radius: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 1.5cm;
+      font-size: var(--square-font-size);
       color: #fff;
-      margin: 0 5px;
+      margin: 5px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       font-weight: bold;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
@@ -61,8 +93,8 @@
       color: #fff;
       border: none;
       border-radius: 5px;
-      padding: 10px 20px;
-      font-size: 16px;
+      padding: var(--button-padding);
+      font-size: var(--button-font-size);
       cursor: pointer;
       transition: background-color 0.3s;
     }
@@ -76,9 +108,16 @@
     #square7 { background-color: #FFFF00; }
     /* Empty squares styling */
     .empSquares {
+      width: var(--square-size);
+      height: var(--square-size);
       background-color: #d3d3d3;
       border: 1px solid #ccc;
       color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: var(--square-font-size);
+      margin: 5px;
     }
     .hidden span {
       visibility: hidden;
@@ -89,7 +128,7 @@
 </head>
 <body>
   <div class="main-container">
-    <!-- Button container -->
+    <!-- Button container (admin-only actions) -->
     <div class="button-square-container">
       <button class="shufButton" id="shuffleButton">Shuffle</button>
       <button class="hideButton" id="hideButton">Hide</button>
@@ -127,7 +166,7 @@
         console.log("Player role:", playerRole);
         socket.emit("joinGame", playerRole);
         
-        // Disable shuffle, hide, and reveal for non-admin users.
+        // Disable shuffle and hide buttons for non-admin users.
         if (playerRole !== "admin") {
           document.getElementById("shuffleButton").disabled = true;
           document.getElementById("hideButton").disabled = true;
@@ -141,7 +180,7 @@
           });
           // Update empty squares – display value even if it is 0.
           document.querySelectorAll(".empSquares").forEach((el, idx) => {
-            const val = state.emptySquares[idx];
+            const val = state.emptySquares[idx]; // Could be 0, a number, or an empty string.
             el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== "")) ? val : "";
           });
           // Update hide button text
@@ -149,7 +188,7 @@
         });
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
-          // When shuffle is clicked, clear empty squares in the UI.
+          // Clear empty squares in the UI
           document.querySelectorAll(".empSquares").forEach(el => el.textContent = "");
           socket.emit("shuffle", { role: playerRole });
         });
