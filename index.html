@@ -126,6 +126,10 @@
             el.classList.toggle("hidden", state.hide);
           });
           document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
+          
+          document.querySelectorAll(".empSquares").forEach((el, idx) => {
+            el.textContent = state.emptySquares[idx] || "";
+          });
         });
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
