@@ -88,7 +88,7 @@
   <div class="main-container">
     <div class="button-square-container">
       <button class="shufButton" id="shuffleButton">Shuffle</button>
-      <button class="hideButton" id="hideButton">Hide/Reveal</button>
+      <button class="hideButton" id="hideButton">Hide</button>
     </div>
     <div class="square-container">
       <div class="row empty-row">
@@ -115,30 +115,30 @@
         console.log("Initializing game...");
         const socket = io("https://boatneck-aware-locket.glitch.me", { transports: ['websocket'] });
         
-        socket.on("connect", () => console.log("Connected to server:", socket.id));
-        socket.on("disconnect", (reason) => console.warn("Disconnected from server:", reason));
-        socket.on("connect_error", (error) => console.error("Connection error:", error));
+        let playerRole = prompt("Enter your role (player1, player2):");
+        if (!playerRole) playerRole = "player1";
+        console.log("Player role:", playerRole);
+        socket.emit("joinGame", playerRole);
         
         socket.on("gameState", (state) => {
-          try {
-            console.log("Game state updated:", state);
-            document.querySelectorAll(".numSquares").forEach((el, idx) => {
-              el.querySelector("span").textContent = state.numberedSquares[idx];
-              el.classList.toggle("hidden", state.hide);
-            });
-            document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
-          } catch (err) {
-            console.error("Error processing gameState:", err);
-          }
+          document.querySelectorAll(".numSquares").forEach((el, idx) => {
+            el.querySelector("span").textContent = state.numberedSquares[idx];
+            el.classList.toggle("hidden", state.hide);
+          });
+          document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
         });
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
-          socket.emit("shuffle");
+          socket.emit("shuffle", { role: playerRole });
         });
         
         document.getElementById("hideButton").addEventListener("click", () => {
-          socket.emit("hide");
+          socket.emit("hide", { role: playerRole });
         });
+        
+        window.revealSquare = function(element) {
+          socket.emit("revealSquare", { square: element.id, role: playerRole });
+        };
       } catch (error) {
         console.error("Error initializing game:", error);
       }
