@@ -11,7 +11,7 @@ function handleJoinGame(socket, role) {
 }
 
 // handleShuffle: (admin-only) generates a new array for numberedSquares,
-// resets numberedDisabled and emptySquares, but does not change the hide state.
+// resets numberedDisabled and emptySquares (but does not change the hide state).
 function handleShuffle(socket, io) {
   if (socket.role !== "admin") {
     console.log(`Unauthorized shuffle attempt by ${socket.id}`);
@@ -25,7 +25,7 @@ function handleShuffle(socket, io) {
   const values = numbers.concat(dots).sort(() => Math.random() - 0.5);
   console.log("Shuffle generated array:", values);
   
-  // Update game state without changing the hide state.
+  // Update game state without modifying the hide state.
   gameState.numberedSquares = values;
   gameState.numberedDisabled = Array(7).fill(false);
   gameState.emptySquares = Array(5).fill("");
@@ -34,10 +34,11 @@ function handleShuffle(socket, io) {
   io.emit("gameState", gameState);
 }
 
-// handleRevealSquare: (admin-only) marks a square as revealed and copies its value to the next available empty square.
+// handleRevealSquare: allows admin and players (roles starting with 'player')
+// to reveal a numbered square. The revealed value (even if 0) is copied to the next available empty square.
 function handleRevealSquare(socket, io, data) {
-  // Only allow admin to reveal.
-  if (socket.role !== "admin") {
+  // Allow if role is admin or role starts with "player"
+  if (!socket.role || (socket.role !== "admin" && !socket.role.startsWith("player"))) {
     console.log(`Unauthorized reveal attempt by ${socket.id}`);
     return;
   }
@@ -51,11 +52,12 @@ function handleRevealSquare(socket, io, data) {
     return;
   }
   
+  // Process only if the square hasn't been revealed yet.
   if (!gameState.numberedDisabled[index]) {
     gameState.numberedDisabled[index] = true;
     console.log(`Square ${data.square} revealed with value ${gameState.numberedSquares[index]}`);
     
-    // Copy the value to the next available empty square (even if the value is 0).
+    // Copy the value (even if it's 0) to the next available empty square.
     if (gameState.empIndex < gameState.emptySquares.length) {
       gameState.emptySquares[gameState.empIndex] = gameState.numberedSquares[index];
       console.log(`Value ${gameState.numberedSquares[index]} copied to empty square at index ${gameState.empIndex}`);
@@ -66,7 +68,7 @@ function handleRevealSquare(socket, io, data) {
     
     io.emit("gameState", gameState);
     
-    // If all numbered squares have been revealed, auto-reset after 3 seconds.
+    // Auto-reset if all numbered squares have been revealed.
     if (gameState.numberedDisabled.every(flag => flag === true)) {
       console.log("All squares revealed, resetting game in 3 seconds...");
       setTimeout(() => {
