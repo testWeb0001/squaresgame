@@ -30,6 +30,16 @@
         --empty-row-margin-bottom: 3em;
       }
     }
+    /* For large displays (e.g., 1200px and up) */
+    @media (min-width: 1200px) {
+      :root {
+        --square-size: 120px;
+        --square-font-size: 48px;
+        --button-font-size: 20px;
+        --button-padding: 12px 24px;
+        --empty-row-margin-bottom: 4em;
+      }
+    }
     
     /* Basic styling for centering content */
     body {
@@ -181,7 +191,7 @@
           // Update empty squares – display value even if it is 0.
           document.querySelectorAll(".empSquares").forEach((el, idx) => {
             const val = state.emptySquares[idx]; // Could be 0, a number, or empty string.
-            el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== \"\")) ? val : \"\";
+            el.textContent = (val === 0 || val === '0' || (val !== undefined && val !== null && val !== "")) ? val : "";
           });
           // Update hide button text
           document.getElementById("hideButton").textContent = state.hide ? "Reveal" : "Hide";
@@ -189,7 +199,7 @@
         
         document.getElementById("shuffleButton").addEventListener("click", () => {
           // Clear empty squares in the UI
-          document.querySelectorAll(".empSquares").forEach(el => el.textContent = \"\");
+          document.querySelectorAll(".empSquares").forEach(el => el.textContent = "");
           socket.emit("shuffle", { role: playerRole });
         });
         
